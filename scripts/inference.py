@@ -1,34 +1,24 @@
 import torch
-from gptqmodel import GPTQModel, QuantizeConfig
 from transformers import AutoTokenizer
+from gptqmodel import GPTQModel
 
-# Path to the quantized model
-quantized_model_path = "/workspace/quantization/models/Qwen2.5-3B-GPTQ"
+# Define model path
+model_path = "D:/Edge-LLM/models/Qwen2.5-3B-GPTQ"
 
-# Force CUDA usage
+# Load tokenizer and model
+tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+
+# Check if CUDA is available, else use CPU
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
-torch.cuda.set_device(0)
 
-print(f"Using device: {device}")
+model = GPTQModel.from_quantized(model_path, device=device, use_safetensors=True)
 
-# Load the tokenizer
-tokenizer = AutoTokenizer.from_pretrained(quantized_model_path)
+def generate_response(prompt, max_tokens=300):
+    inputs = tokenizer(prompt, return_tensors="pt").to(device)
+    output = model.generate(**inputs, max_new_tokens=max_tokens)
+    
+    return tokenizer.decode(output[0], skip_special_tokens=True)
 
-# Load the quantized model
-print("\nLoading quantized model...")
-model = GPTQModel.from_quantized(quantized_model_path, device=device)
-print("✅ Model loaded successfully!")
-
-# Prepare input prompt
-prompt = "Explain quantum entanglement in simple terms."
-inputs = tokenizer(prompt, return_tensors="pt").to(device)
-
-# Generate response
-print("\nGenerating response...")
-with torch.no_grad():
-    output = model.generate(**inputs, max_new_tokens=100)
-
-# Decode output
-decoded_output = tokenizer.decode(output[0], skip_special_tokens=True)
-print("\n🔹 **Generated Response:**")
-print(decoded_output)
+# Test the function
+query = "What is retrieval-augmented generation?"
+print(generate_response(query))
