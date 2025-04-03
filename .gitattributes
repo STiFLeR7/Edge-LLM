@@ -1,0 +1,15 @@
+# Use Git LFS for model files
+models/Qwen2.5-3B-GPTQ/* filter=lfs diff=lfs merge=lfs
+
+# Ignore backup and temporary files
+*.bak
+*.tmp
+*.swp
+
+# Preserve text files with standard diff handling
+*.txt text
+*.md text
+*.json text
+
+# Ensure proper handling of Python scripts
+*.py text eol=lf
